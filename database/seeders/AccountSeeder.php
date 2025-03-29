@@ -21,31 +21,26 @@ class AccountSeeder extends Seeder
 
         $bankAssetAccount = Account::create([
             'name' => 'Bank',
-            'type' => 'debit',
             'account_category_id' => $assetsCategory->id,
         ]);
 
         $mortgageLiabilityAccount = Account::create([
             'name' => 'Mortgage',
-            'type' => 'credit',
             'account_category_id' => $liabilitiesCategory->id,
         ]);
 
         $mortgageLiabilityAccount = Account::create([
             'name' => 'Mortgage',
-            'type' => 'credit',
             'account_category_id' => $liabilitiesCategory->id,
         ]);
 
         $salaryIncomeAccount = Account::create([
             'name' => 'Salary',
-            'type' => 'credit',
             'account_category_id' => $incomeCategory->id,
         ]);
 
         $utilitiesExpenseAccount = Account::create([
             'name' => 'Utilities',
-            'type' => 'debit',
             'account_category_id' => $expensesCategory->id,
         ]);
     }

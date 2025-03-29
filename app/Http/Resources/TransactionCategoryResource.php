@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AccountResource extends JsonResource
+class TransactionCategoryResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,7 +17,7 @@ class AccountResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'accountCategory' => new AccountCategoryResource($this->whenLoaded('category')),
+            'path' => $this->getPathFormatted(),
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
         ];

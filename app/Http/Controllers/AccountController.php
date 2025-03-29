@@ -22,9 +22,9 @@ class AccountController extends Controller
      */
     public function store(Request $request)
     {
+        //todo: move to form request
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|string|in:credit,debit',
             'account_category_id' => 'required|exists:account_categories,id',
         ]);
 
@@ -40,7 +40,7 @@ class AccountController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return new AccountResource(Account::with('category')->findOrFail($id));
     }
 
     /**
@@ -48,7 +48,18 @@ class AccountController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        //todo: move to form request
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'account_category_id' => 'sometimes|required|exists:account_categories,id',
+        ]);
+    
+        $account = Account::findOrFail($id);
+        $account->update($validated);
+    
+        return response()->json([
+            'account' => new AccountResource($account->with('category'))
+        ], 200);
     }
 
     /**
@@ -56,6 +67,9 @@ class AccountController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $account = Account::findOrFail($id);
+        $account->delete();
+    
+        return response(null, 200);
     }
 }

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('account_categories', function (Blueprint $table) {
             $table->id();
+            $table->softDeletes();
             $table->string('name', 255);
             $table->enum('type', ['credit', 'debit']);
             $table->timestamps();
@@ -21,14 +22,26 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 255);
-            $table->enum('type', ['credit', 'debit']);
             $table->timestamps();
+            $table->softDeletes();
+            
 
             $table->foreignId('account_category_id')->constrained('account_categories')->onDelete('cascade');
         });
 
-        Schema::create('entries', function (Blueprint $table) {
+        Schema::create('transaction_categories', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->string('name', 255);
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('parent_id')->references('id')->on('transaction_categories')->onDelete('cascade');
+        });
+
+        Schema::create('transactions', function (Blueprint $table) {
+            $table->id();
+            $table->softDeletes();
             $table->string('description', 255);
             $table->decimal('amount');
             $table->timestamps();

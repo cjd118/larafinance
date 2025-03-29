@@ -22,4 +22,4 @@ yarn-error.log
 /.vscode
 /.zed
 
-/curl-api-tests
+/curl-api-tests/.env
