@@ -16,6 +16,7 @@ class TransactionCategoryResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'parentId' => $this->parent_id,
             'name' => $this->name,
             'path' => $this->getPathFormatted(),
             'createdAt' => $this->created_at,

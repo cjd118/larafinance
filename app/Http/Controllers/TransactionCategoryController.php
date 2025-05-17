@@ -28,7 +28,7 @@ class TransactionCategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'parent_id' => [
-                'required', 
+                'nullable', 
                 'exists:transaction_categories,id',
             ]
         ]);
@@ -57,7 +57,7 @@ class TransactionCategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'parent_id' => [
-                'required', 
+                'nullable', 
                 'exists:transaction_categories,id',
                 //check that parent is not child of itself
                 function ($attribute, $value, $fail) use($id) {
