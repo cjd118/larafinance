@@ -1,0 +1,88 @@
+<?php
+
+namespace Tests\Feature\Http\Controllers;
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+use App\Models\Account;
+use App\Models\AccountCategory;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
+
+class AccountControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private $accountCategory;
+    private $account;
+
+    public function setup(): void {
+        parent::setUp();
+
+        Sanctum::actingAs(
+            User::factory()->create(),
+            ['*']
+        );
+
+        $this->accountCategory = new AccountCategory();
+        $this->accountCategory->name = 'Test Category';
+        $this->accountCategory->save();
+
+        $this->account = new Account();
+        $this->account->name = 'Test Account';
+        $this->account->account_category_id = $this->accountCategory->id;
+        $this->account->save();
+    }
+
+    public function testIndex(): void
+    {
+        $response = $this->get('/api/accounts');
+
+        $response->assertJsonFragment([
+            'name' => 'Test Account',
+        ]);
+    }
+
+    public function testStore(): void
+    {
+        $response = $this->post('/api/accounts', [
+            'name' => 'Test Account',
+            'account_category_id' => $this->accountCategory->id,
+        ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'name' => 'Test Account',
+            'account_category_id' => $this->accountCategory->id,
+        ]);
+    }
+
+    public function testShow(): void
+    {
+        $response = $this->get('/api/accounts/' . $this->account->id);
+
+        $response->assertJsonFragment([
+            'name' => 'Test Account',
+        ]);
+    }
+
+    public function testUpdate(): void
+    {
+        $response = $this->put('/api/accounts/' . $this->account->id, [
+            'name' => 'Updated Account',
+        ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $this->account->id,
+            'name' => 'Updated Account',
+        ]);
+    }
+
+    public function testDestroy(): void
+    {
+        $response = $this->delete('/api/accounts/' . $this->account->id);
+
+        $this->assertSoftDeleted('accounts', [
+            'id' => $this->account->id,
+        ]);
+    }
+}

@@ -15,7 +15,7 @@ class TransactionCategoryController extends Controller
     public function index()
     {
         return new TransactionCategoryCollection(TransactionCategory::all()->sortBy(function ($category) {
-            return $category->getPath();
+            return $category->getPathFormatted();
         }));
     }
 
