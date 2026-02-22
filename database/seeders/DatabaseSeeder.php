@@ -20,5 +20,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call(AccountSeeder::class);
         $this->call(TransactionSeeder::class);
+        $this->call(TransactionImporterSeeder::class);
     }
 }

@@ -49,6 +49,13 @@ return new class extends Migration
             $table->foreignId('credit_account_id')->constrained('accounts')->onDelete('cascade');
             $table->foreignId('debit_account_id')->constrained('accounts')->onDelete('cascade');
         });
+
+        Schema::create('transaction_importers', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 255);
+            $table->string('class_name', 255);
+            $table->timestamps();
+        });
     }
 
     /**

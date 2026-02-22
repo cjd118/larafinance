@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountCategoryController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\TransactionCategoryController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TransactionImportController;
 use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,4 +18,6 @@ Route::apiResource('accounts', AccountController::class)->middleware('auth:sanct
 Route::apiResource('transactions', TransactionController::class)->middleware('auth:sanctum');
 
 Route::apiResource('transaction-categories', TransactionCategoryController::class)->middleware('auth:sanctum');
+
+Route::apiResource('transaction-imports', TransactionImportController::class)->only('index', 'store')->middleware('auth:sanctum');
 
