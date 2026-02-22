@@ -16,6 +16,8 @@ class TransactionControllerTest extends TestCase
     use RefreshDatabase;
 
     private $testTransaction;
+    private $debitAccount;
+    private $creditAccount;
 
     public function setup(): void {
         parent::setUp();
@@ -29,21 +31,21 @@ class TransactionControllerTest extends TestCase
         $accountCategory->name = 'Test Category';
         $accountCategory->save();
 
-        $account1 = new Account();
-        $account1->name = 'Test Account Debit';
-        $account1->account_category_id = $accountCategory->id;
-        $account1->save();
+        $this->debitAccount = new Account();
+        $this->debitAccount->name = 'Test Account Debit';
+        $this->debitAccount->account_category_id = $accountCategory->id;
+        $this->debitAccount->save();
 
-        $account2 = new Account();
-        $account2->name = 'Test Account Credit';
-        $account2->account_category_id = $accountCategory->id;
-        $account2->save();
+        $this->creditAccount = new Account();
+        $this->creditAccount->name = 'Test Account Credit';
+        $this->creditAccount->account_category_id = $accountCategory->id;
+        $this->creditAccount->save();
 
         $this->testTransaction = Transaction::create([
             'description' => 'Salary Received',
             'amount' => 1500,
-            'credit_account_id' => $account2->id,
-            'debit_account_id' => $account1->id,
+            'credit_account_id' => $this->creditAccount->id,
+            'debit_account_id' => $this->debitAccount->id,
         ]);
     }
 
@@ -57,29 +59,32 @@ class TransactionControllerTest extends TestCase
         ]);
     }
 
-    // public function testStore(): void
-    // {
-    //     $response = $this->post('/api/transaction-categories', [
-    //         'name' => 'Test Category',
-    //         'parent_id' => null,
-    //     ]);
+    public function testStore(): void
+    {
+        $response = $this->post('/api/transactions', [
+            'description' => 'Salary Received',
+            'amount' => 1000.01,
+            'credit_account_id' => $this->creditAccount->id,
+            'debit_account_id' => $this->debitAccount->id,
+        ]);
 
-    //     $this->assertDatabaseHas('transaction_categories', [
-    //         'name' => 'Test Category',
-    //         'parent_id' => null,
-    //     ]);
-    // }
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'Salary Received',
+            'amount' => "1000.01",
+        ]);
+    }
 
-    // public function testShow(): void
-    // {
-    //     $response = $this->get('/api/transaction-categories/' . $this->homeCategory->id);
+    public function testShow(): void
+    {
+        $response = $this->get('/api/transactions/' . $this->testTransaction->id);
 
-    //     $response->assertJsonFragment([
-    //         'name' => 'Home',
-    //         'parentId' => null,
-    //     ]);
-    // }
+        $response->assertJsonFragment([
+            'description' => 'Salary Received',
+            'amount' => "1500.00",
+        ]);
+    }
 
+    //todo
     // public function testUpdate(): void
     // {
     //     $response = $this->put('/api/transaction-categories/' . $this->homeCategory->id, [
@@ -92,12 +97,12 @@ class TransactionControllerTest extends TestCase
     //     ]);
     // }
 
-    // public function testDestroy(): void
-    // {
-    //     $response = $this->delete('/api/transaction-categories/' . $this->homeCategory->id);
+    public function testDestroy(): void
+    {
+        $response = $this->delete('/api/transactions/' . $this->testTransaction->id);
 
-    //     $this->assertSoftDeleted('transaction_categories', [
-    //         'id' => $this->homeCategory->id,
-    //     ]);
-    // }
+        $this->assertSoftDeleted('transactions', [
+            'id' => $this->testTransaction->id,
+        ]);
+    }
 }
