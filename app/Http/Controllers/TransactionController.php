@@ -33,9 +33,10 @@ class TransactionController extends Controller
         ]);
     
         $transaction = Transaction::create($validated);
-    
+        $transaction->load(['creditAccount', 'debitAccount']);
+
         return response()->json([
-            'transaction' => new TransactionResource($transaction->with(['creditAccount', 'debitAccount']))
+            'transaction' => new TransactionResource($transaction)
         ], 201);
     }
 

@@ -56,9 +56,10 @@ class AccountController extends Controller
     
         $account = Account::findOrFail($id);
         $account->update($validated);
-    
+        $account->load('category');
+
         return response()->json([
-            'account' => new AccountResource($account->with('category'))
+            'account' => new AccountResource($account)
         ], 200);
     }
 

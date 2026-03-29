@@ -72,6 +72,14 @@ class TransactionControllerTest extends TestCase
             'description' => 'Salary Received',
             'amount' => "1000.01",
         ]);
+
+        $response->assertJsonFragment([
+            'description' => 'Salary Received',
+            'amount' => 1000.01,
+        ]);
+
+        $response->assertJsonPath('transaction.creditAccount.name', 'Test Account Credit');
+        $response->assertJsonPath('transaction.debitAccount.name', 'Test Account Debit');
     }
 
     public function testShow(): void

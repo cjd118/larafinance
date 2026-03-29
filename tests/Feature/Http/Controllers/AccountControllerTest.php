@@ -75,6 +75,17 @@ class AccountControllerTest extends TestCase
             'id' => $this->account->id,
             'name' => 'Updated Account',
         ]);
+
+        $response->assertJsonFragment([
+            'name' => 'Updated Account',
+            'accountCategory' => [
+                'id' => $this->accountCategory->id,
+                'name' => 'Test Category',
+                'type' => 'credit',
+                'createdAt' => $this->accountCategory->created_at,
+                'updatedAt' => $this->accountCategory->updated_at,
+            ],
+        ]);
     }
 
     public function testDestroy(): void
