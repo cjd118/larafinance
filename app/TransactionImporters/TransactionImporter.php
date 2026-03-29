@@ -4,7 +4,11 @@ namespace App\TransactionImporters;
 
 interface TransactionImporter
 {
-    public function validate(string $data) : bool;
+    public function loadData(string $data) : void;
 
-    public function import(string $data) : bool;
+    public function validate() : void;
+
+    public function generateFingerprint() : string;
+
+    public function import() : bool;
 }

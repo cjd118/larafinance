@@ -56,6 +56,15 @@ return new class extends Migration
             $table->string('class_name', 255);
             $table->timestamps();
         });
+
+        Schema::create('transaction_imports', function (Blueprint $table) {
+            $table->id();
+            $table->softDeletes();
+            $table->string('fingerprint', 255);
+            $table->timestamps();
+
+            $table->foreignId('transaction_importer_id')->constrained('transaction_importers')->onDelete('cascade');
+        });
     }
 
     /**

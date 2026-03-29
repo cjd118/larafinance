@@ -2,19 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\TransactionCollection;
-use App\Http\Resources\TransactionResource;
-use App\Models\Transaction;
 use App\Models\TransactionImporter;
 use Illuminate\Http\Request;
 
 class TransactionImportController extends Controller
 {
-    // public function index()
-    // {
-    //     return new TransactionCollection(Transaction::orderBy('id', 'desc')->with(['creditAccount', 'debitAccount'])->paginate(100));
-    // }
-
     public function store(Request $request)
     {
         //todo: move to form request
@@ -27,8 +19,19 @@ class TransactionImportController extends Controller
 
         $dynamicTransactionImporter = app()->make($transactionImporter->class_name);
 
-        $dynamicTransactionImporter->validate($request->data);
-    
+        $dynamicTransactionImporter->loadData($request->data);
+
+        try {
+            $dynamicTransactionImporter->validate();
+        } catch (\Exception $e) {
+            return response('Invalid file format: ' . $e->getMessage(), 422);
+        }
+
+        //todo: check fingerprint against existing imports to prevent duplicates
+        $fingerPrint = $dynamicTransactionImporter->generateFingerprint();
+
+        //todo: call $dynamicTransactionImporter->import() and persist results
+
         return response('Transactions imported successfully', 201);
     }
 }

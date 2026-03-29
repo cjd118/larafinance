@@ -26,10 +26,6 @@ class TransactionImportControllerTest extends TestCase
         $transactionImporter->save();
     }
 
-    // public function testIndex(): void
-    // {
-    // }
-
     public function testStore(): void
     {
         $response = $this->post('/api/transaction-imports', [
@@ -37,7 +33,17 @@ class TransactionImportControllerTest extends TestCase
             'data' => $this->generateLloydsBankCsvData(),
         ]);
 
-        dd($response);
+        $response->assertStatus(201);
+    }
+
+    public function testStoreRejectsInvalidFormat(): void
+    {
+        $response = $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'data' => "Wrong,Headers\nfoo,bar\n",
+        ]);
+
+        $response->assertStatus(422);
     }
 
     private function generateLloydsBankCsvData(): string
