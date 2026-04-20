@@ -36,6 +36,21 @@ class TransactionImportControllerTest extends TestCase
         $response->assertStatus(201);
     }
 
+    public function testStoreRejectsDuplicateImport(): void
+    {
+        $csvData = $this->generateLloydsBankCsvData();
+
+        $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'data' => $csvData,
+        ])->assertStatus(201);
+
+        $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'data' => $csvData,
+        ])->assertStatus(409);
+    }
+
     public function testStoreRejectsInvalidFormat(): void
     {
         $response = $this->post('/api/transaction-imports', [
