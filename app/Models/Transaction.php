@@ -9,7 +9,7 @@ class Transaction extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['description', 'amount', 'credit_account_id', 'debit_account_id'];
+    protected $fillable = ['description', 'amount', 'credit_account_id', 'debit_account_id', 'transaction_import_id'];
 
     public function creditAccount()
     {
@@ -19,5 +19,10 @@ class Transaction extends Model
     public function debitAccount()
     {
         return $this->belongsTo(Account::class, 'debit_account_id');
+    }
+
+    public function transactionImport()
+    {
+        return $this->belongsTo(TransactionImport::class);
     }
 }

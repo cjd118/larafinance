@@ -9,7 +9,7 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
     private $csvReader;
 
     public function loadData(string $data) : void
-    {       
+    {
         $this->csvReader = Reader::createFromString($data);
         $this->csvReader->setHeaderOffset(0);
     }
@@ -19,7 +19,7 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
     }
 
     private function validateHeader(array $header) : void
-    {   
+    {
         if($header !== [
             'Transaction Date',
             'Transaction Type',
@@ -33,15 +33,30 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
             throw new \Exception('Invalid file header');
         };
     }
-    
+
     public function generateFingerprint() : string
     {
         return hash('sha256', $this->csvReader->__toString());
     }
 
-    public function import() : bool
+    public function parse() : array
     {
-        //todo
-        return false;
+        $transactions = [];
+
+        foreach ($this->csvReader->getRecords() as $record) {
+            $debit = $record['Debit Amount'] === '' ? 0 : (float) $record['Debit Amount'];
+            $credit = $record['Credit Amount'] === '' ? 0 : (float) $record['Credit Amount'];
+
+            $transactions[] = [
+                'date' => \DateTime::createFromFormat('d/m/Y', $record['Transaction Date'])->format('Y-m-d'),
+                'type' => $record['Transaction Type'],
+                'sort_code' => ltrim($record['Sort Code'], "'"),
+                'account_number' => $record['Account Number'],
+                'description' => $record['Transaction Description'],
+                'amount' => $credit - $debit,
+            ];
+        }
+
+        return $transactions;
     }
 }

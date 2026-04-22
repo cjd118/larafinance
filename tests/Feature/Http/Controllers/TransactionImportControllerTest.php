@@ -4,6 +4,9 @@ namespace Tests\Feature\Http\Controllers;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\Account;
+use App\Models\AccountCategory;
+use App\Models\Transaction;
 use App\Models\TransactionImporter;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -11,6 +14,8 @@ use Laravel\Sanctum\Sanctum;
 class TransactionImportControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    private Account $bankAccount;
 
     public function setup(): void {
         parent::setUp();
@@ -24,16 +29,56 @@ class TransactionImportControllerTest extends TestCase
         $transactionImporter->name = 'Lloyds Bank CSV';
         $transactionImporter->class_name = 'App\TransactionImporters\LloydsBankCsvTransactionImporter';
         $transactionImporter->save();
+
+        $assetsCategory = AccountCategory::create(['name' => 'Assets', 'type' => 'debit']);
+        $incomeCategory = AccountCategory::create(['name' => 'Income', 'type' => 'credit']);
+        $expensesCategory = AccountCategory::create(['name' => 'Expenses', 'type' => 'debit']);
+
+        $this->bankAccount = Account::create([
+            'name' => 'Bank',
+            'account_category_id' => $assetsCategory->id,
+        ]);
+
+        Account::create([
+            'name' => 'Unassigned Income',
+            'account_category_id' => $incomeCategory->id,
+        ]);
+
+        Account::create([
+            'name' => 'Unassigned Expense',
+            'account_category_id' => $expensesCategory->id,
+        ]);
     }
 
     public function testStore(): void
     {
         $response = $this->post('/api/transaction-imports', [
             'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
             'data' => $this->generateLloydsBankCsvData(),
         ]);
 
         $response->assertStatus(201);
+        $response->assertJson(['imported_count' => 2]);
+
+        $this->assertDatabaseCount('transactions', 2);
+
+        $unassignedIncome = Account::where('name', 'Unassigned Income')->first();
+        $unassignedExpense = Account::where('name', 'Unassigned Expense')->first();
+
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'mobile',
+            'amount' => 8.00,
+            'credit_account_id' => $this->bankAccount->id,
+            'debit_account_id' => $unassignedExpense->id,
+        ]);
+
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'J SMITH    24JAN26',
+            'amount' => 800.00,
+            'debit_account_id' => $this->bankAccount->id,
+            'credit_account_id' => $unassignedIncome->id,
+        ]);
     }
 
     public function testStoreRejectsDuplicateImport(): void
@@ -42,11 +87,13 @@ class TransactionImportControllerTest extends TestCase
 
         $this->post('/api/transaction-imports', [
             'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
             'data' => $csvData,
         ])->assertStatus(201);
 
         $this->post('/api/transaction-imports', [
             'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
             'data' => $csvData,
         ])->assertStatus(409);
     }
@@ -55,6 +102,7 @@ class TransactionImportControllerTest extends TestCase
     {
         $response = $this->post('/api/transaction-imports', [
             'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
             'data' => "Wrong,Headers\nfoo,bar\n",
         ]);
 

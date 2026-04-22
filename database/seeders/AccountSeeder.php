@@ -19,28 +19,33 @@ class AccountSeeder extends Seeder
         $incomeCategory = AccountCategory::create(['name' => 'Income', 'type' => 'credit']);
         $expensesCategory = AccountCategory::create(['name' => 'Expenses', 'type' => 'debit']);
 
-        $bankAssetAccount = Account::create([
+        Account::create([
             'name' => 'Bank',
             'account_category_id' => $assetsCategory->id,
         ]);
 
-        $mortgageLiabilityAccount = Account::create([
+        Account::create([
             'name' => 'Mortgage',
             'account_category_id' => $liabilitiesCategory->id,
         ]);
 
-        $mortgageLiabilityAccount = Account::create([
-            'name' => 'Mortgage',
-            'account_category_id' => $liabilitiesCategory->id,
-        ]);
-
-        $salaryIncomeAccount = Account::create([
+        Account::create([
             'name' => 'Salary',
             'account_category_id' => $incomeCategory->id,
         ]);
 
-        $utilitiesExpenseAccount = Account::create([
+        Account::create([
             'name' => 'Utilities',
+            'account_category_id' => $expensesCategory->id,
+        ]);
+
+        Account::create([
+            'name' => 'Unassigned Income',
+            'account_category_id' => $incomeCategory->id,
+        ]);
+
+        Account::create([
+            'name' => 'Unassigned Expense',
             'account_category_id' => $expensesCategory->id,
         ]);
     }

@@ -39,17 +39,6 @@ return new class extends Migration
             $table->foreign('parent_id')->references('id')->on('transaction_categories')->onDelete('cascade');
         });
 
-        Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
-            $table->softDeletes();
-            $table->string('description', 255);
-            $table->decimal('amount');
-            $table->timestamps();
-
-            $table->foreignId('credit_account_id')->constrained('accounts')->onDelete('cascade');
-            $table->foreignId('debit_account_id')->constrained('accounts')->onDelete('cascade');
-        });
-
         Schema::create('transaction_importers', function (Blueprint $table) {
             $table->id();
             $table->string('name', 255);
@@ -64,6 +53,18 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreignId('transaction_importer_id')->constrained('transaction_importers')->onDelete('cascade');
+        });
+
+        Schema::create('transactions', function (Blueprint $table) {
+            $table->id();
+            $table->softDeletes();
+            $table->string('description', 255);
+            $table->decimal('amount');
+            $table->timestamps();
+
+            $table->foreignId('credit_account_id')->constrained('accounts')->onDelete('cascade');
+            $table->foreignId('debit_account_id')->constrained('accounts')->onDelete('cascade');
+            $table->foreignId('transaction_import_id')->nullable()->constrained('transaction_imports')->nullOnDelete();
         });
     }
 

@@ -10,5 +10,5 @@ interface TransactionImporter
 
     public function generateFingerprint() : string;
 
-    public function import() : bool;
+    public function parse() : array;
 }

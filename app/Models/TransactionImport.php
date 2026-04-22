@@ -18,4 +18,9 @@ class TransactionImport extends Model
     {
         return $this->belongsTo(TransactionImporter::class);
     }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }

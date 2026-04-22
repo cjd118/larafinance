@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
+use App\Models\Transaction;
 use App\Models\TransactionImport;
 use App\Models\TransactionImporter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TransactionImportController extends Controller
 {
@@ -13,6 +16,7 @@ class TransactionImportController extends Controller
         //todo: move to form request
         $validated = $request->validate([
             'name' => 'required|string|exists:transaction_importers,name',
+            'account_id' => 'required|integer|exists:accounts,id',
             'data' => 'required',
         ]);
 
@@ -34,13 +38,41 @@ class TransactionImportController extends Controller
             return response('This file has already been imported', 409);
         }
 
-        //todo: call $dynamicTransactionImporter->import() and persist results
+        $parsedTransactions = $dynamicTransactionImporter->parse();
 
-        TransactionImport::create([
-            'fingerprint' => $fingerprint,
-            'transaction_importer_id' => $transactionImporter->id,
-        ]);
+        $unassignedIncomeId = Account::where('name', 'Unassigned Income')->value('id');
+        $unassignedExpenseId = Account::where('name', 'Unassigned Expense')->value('id');
 
-        return response('Transactions imported successfully', 201);
+        $transactionImport = DB::transaction(function () use ($parsedTransactions, $fingerprint, $transactionImporter, $request, $unassignedIncomeId, $unassignedExpenseId) {
+            $transactionImport = TransactionImport::create([
+                'fingerprint' => $fingerprint,
+                'transaction_importer_id' => $transactionImporter->id,
+            ]);
+
+            foreach ($parsedTransactions as $parsed) {
+                if ($parsed['amount'] >= 0) {
+                    $debitAccountId = $request->account_id;
+                    $creditAccountId = $unassignedIncomeId;
+                } else {
+                    $debitAccountId = $unassignedExpenseId;
+                    $creditAccountId = $request->account_id;
+                }
+
+                Transaction::create([
+                    'description' => $parsed['description'],
+                    'amount' => abs($parsed['amount']),
+                    'credit_account_id' => $creditAccountId,
+                    'debit_account_id' => $debitAccountId,
+                    'transaction_import_id' => $transactionImport->id,
+                ]);
+            }
+
+            return $transactionImport;
+        });
+
+        return response()->json([
+            'transaction_import_id' => $transactionImport->id,
+            'imported_count' => count($parsedTransactions),
+        ], 201);
     }
 }
