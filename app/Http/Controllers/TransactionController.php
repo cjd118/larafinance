@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTransactionRequest;
 use App\Http\Resources\TransactionCollection;
 use App\Http\Resources\TransactionResource;
 use App\Models\Transaction;
@@ -20,19 +21,9 @@ class TransactionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTransactionRequest $request)
     {
-        //todo: move to form request
-        $validated = $request->validate([
-            'description' => 'required|string|max:255',
-            'amount' => 'required|numeric|gt:0',
-            //todo: add custom validation rule to ensure credit account is a credit account
-            'credit_account_id' => 'required|exists:accounts,id',
-            //todo: add custom validation rule to ensure debit account is a debit account
-            'debit_account_id' => 'required|exists:accounts,id',
-        ]);
-    
-        $transaction = Transaction::create($validated);
+        $transaction = Transaction::create($request->validated());
         $transaction->load(['creditAccount', 'debitAccount']);
 
         return response()->json([

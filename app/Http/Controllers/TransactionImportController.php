@@ -2,24 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTransactionImportRequest;
 use App\Models\Account;
 use App\Models\Transaction;
 use App\Models\TransactionImport;
 use App\Models\TransactionImporter;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TransactionImportController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreTransactionImportRequest $request)
     {
-        //todo: move to form request
-        $validated = $request->validate([
-            'name' => 'required|string|exists:transaction_importers,name',
-            'account_id' => 'required|integer|exists:accounts,id',
-            'data' => 'required',
-        ]);
-
         $transactionImporter = TransactionImporter::where('name', $request->name)->firstOrFail();
 
         $dynamicTransactionImporter = app()->make($transactionImporter->class_name);

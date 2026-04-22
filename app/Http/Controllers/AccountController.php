@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAccountRequest;
+use App\Http\Requests\UpdateAccountRequest;
 use App\Http\Resources\AccountCollection;
 use App\Http\Resources\AccountResource;
 use App\Models\Account;
-use Illuminate\Http\Request;
 
 class AccountController extends Controller
 {
@@ -20,15 +21,9 @@ class AccountController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreAccountRequest $request)
     {
-        //todo: move to form request
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'account_category_id' => 'required|exists:account_categories,id',
-        ]);
-
-        $account = Account::create($validated);
+        $account = Account::create($request->validated());
 
         return response()->json([
             'account' => new AccountResource($account)
@@ -46,16 +41,10 @@ class AccountController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateAccountRequest $request, string $id)
     {
-        //todo: move to form request
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'account_category_id' => 'sometimes|required|exists:account_categories,id',
-        ]);
-    
         $account = Account::findOrFail($id);
-        $account->update($validated);
+        $account->update($request->validated());
         $account->load('category');
 
         return response()->json([

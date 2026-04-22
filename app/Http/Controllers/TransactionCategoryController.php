@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTransactionCategoryRequest;
+use App\Http\Requests\UpdateTransactionCategoryRequest;
 use App\Http\Resources\TransactionCategoryCollection;
 use App\Http\Resources\TransactionCategoryResource;
 use App\Models\TransactionCategory;
-use Illuminate\Http\Request;
 
 class TransactionCategoryController extends Controller
 {
@@ -22,18 +23,9 @@ class TransactionCategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTransactionCategoryRequest $request)
     {
-        //todo: move to form request
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'parent_id' => [
-                'nullable', 
-                'exists:transaction_categories,id',
-            ]
-        ]);
-    
-        $transactionCategory = TransactionCategory::create($validated);
+        $transactionCategory = TransactionCategory::create($request->validated());
     
         return response()->json([
             'transaction' => new TransactionCategoryResource($transactionCategory)
@@ -51,30 +43,10 @@ class TransactionCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateTransactionCategoryRequest $request, string $id)
     {
-        //todo: move to form request
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'parent_id' => [
-                'nullable', 
-                'exists:transaction_categories,id',
-                //check that parent is not child of itself
-                function ($attribute, $value, $fail) use($id) {
-                    //get the new parent_id's path
-                    $currentPath = TransactionCategory::find($value)->getPath();
-                    //is the current id in that path already?
-                    foreach($currentPath as $pathElement) {
-                        if ($pathElement->id == $id) {
-                            return $fail('Parent cannot be child of itself');
-                        }
-                    }
-                }
-            ]
-        ]);
-    
         $transactionCategory = TransactionCategory::findOrFail($id);
-        $transactionCategory->update($validated);
+        $transactionCategory->update($request->validated());
     
         return response()->json([
             'transaction' => new TransactionCategoryResource($transactionCategory)
