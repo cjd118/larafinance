@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateTransaction;
 use App\Http\Requests\StoreTransactionImportRequest;
 use App\Models\Account;
-use App\Models\Transaction;
 use App\Models\TransactionImport;
 use App\Models\TransactionImporter;
 use Illuminate\Support\Facades\DB;
 
 class TransactionImportController extends Controller
 {
-    public function store(StoreTransactionImportRequest $request)
+    public function store(StoreTransactionImportRequest $request, CreateTransaction $createTransaction)
     {
         $transactionImporter = TransactionImporter::where('name', $request->name)->firstOrFail();
 
@@ -36,7 +36,7 @@ class TransactionImportController extends Controller
         $unassignedIncomeId = Account::where('name', 'Unassigned Income')->value('id');
         $unassignedExpenseId = Account::where('name', 'Unassigned Expense')->value('id');
 
-        $transactionImport = DB::transaction(function () use ($parsedTransactions, $fingerprint, $transactionImporter, $request, $unassignedIncomeId, $unassignedExpenseId) {
+        $transactionImport = DB::transaction(function () use ($parsedTransactions, $fingerprint, $transactionImporter, $request, $unassignedIncomeId, $unassignedExpenseId, $createTransaction) {
             $transactionImport = TransactionImport::create([
                 'fingerprint' => $fingerprint,
                 'transaction_importer_id' => $transactionImporter->id,
@@ -51,7 +51,7 @@ class TransactionImportController extends Controller
                     $creditAccountId = $request->account_id;
                 }
 
-                Transaction::create([
+                $createTransaction->execute([
                     'description' => $parsed['description'],
                     'amount' => abs($parsed['amount']),
                     'credit_account_id' => $creditAccountId,

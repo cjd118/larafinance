@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateTransaction;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Http\Resources\TransactionCollection;
 use App\Http\Resources\TransactionResource;
@@ -21,9 +22,9 @@ class TransactionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreTransactionRequest $request)
+    public function store(StoreTransactionRequest $request, CreateTransaction $createTransaction)
     {
-        $transaction = Transaction::create($request->validated());
+        $transaction = $createTransaction->execute($request->validated());
         $transaction->load(['creditAccount', 'debitAccount']);
 
         return response()->json([
