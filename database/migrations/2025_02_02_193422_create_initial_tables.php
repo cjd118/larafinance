@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -66,6 +67,9 @@ return new class extends Migration
             $table->foreignId('debit_account_id')->constrained('accounts')->onDelete('cascade');
             $table->foreignId('transaction_import_id')->nullable()->constrained('transaction_imports')->nullOnDelete();
         });
+
+        // Double-entry invariant: credit and debit accounts must differ.
+        DB::statement('ALTER TABLE transactions ADD CONSTRAINT chk_transactions_distinct_accounts CHECK (credit_account_id <> debit_account_id)');
     }
 
     /**
