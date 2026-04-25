@@ -27,19 +27,18 @@ class TransactionControllerTest extends TestCase
             ['*']
         );
 
-        $accountCategory = new AccountCategory();
-        $accountCategory->name = 'Test Category';
-        $accountCategory->save();
+        $debitCategory = AccountCategory::create(['name' => 'Test Debit Category', 'type' => 'debit']);
+        $creditCategory = AccountCategory::create(['name' => 'Test Credit Category', 'type' => 'credit']);
 
-        $this->debitAccount = new Account();
-        $this->debitAccount->name = 'Test Account Debit';
-        $this->debitAccount->account_category_id = $accountCategory->id;
-        $this->debitAccount->save();
+        $this->debitAccount = Account::create([
+            'name' => 'Test Account Debit',
+            'account_category_id' => $debitCategory->id,
+        ]);
 
-        $this->creditAccount = new Account();
-        $this->creditAccount->name = 'Test Account Credit';
-        $this->creditAccount->account_category_id = $accountCategory->id;
-        $this->creditAccount->save();
+        $this->creditAccount = Account::create([
+            'name' => 'Test Account Credit',
+            'account_category_id' => $creditCategory->id,
+        ]);
 
         $this->testTransaction = Transaction::create([
             'description' => 'Salary Received',

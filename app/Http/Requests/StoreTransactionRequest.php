@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Validators\AccountMustBeOfType;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreTransactionRequest extends FormRequest
@@ -16,10 +17,8 @@ class StoreTransactionRequest extends FormRequest
         return [
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|gt:0',
-            //todo: add custom validation rule to ensure credit account is a credit account
-            'credit_account_id' => 'required|exists:accounts,id',
-            //todo: add custom validation rule to ensure debit account is a debit account
-            'debit_account_id' => 'required|exists:accounts,id',
+            'credit_account_id' => ['required', 'exists:accounts,id', new AccountMustBeOfType('credit')],
+            'debit_account_id' => ['required', 'exists:accounts,id', new AccountMustBeOfType('debit')],
         ];
     }
 }
