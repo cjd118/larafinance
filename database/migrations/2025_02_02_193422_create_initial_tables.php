@@ -60,7 +60,7 @@ return new class extends Migration
             $table->id();
             $table->softDeletes();
             $table->string('description', 255);
-            $table->decimal('amount');
+            $table->decimal('amount', 12, 2);
             $table->timestamps();
 
             $table->foreignId('credit_account_id')->constrained('accounts')->onDelete('cascade');
