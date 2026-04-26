@@ -9,10 +9,7 @@ class TransactionImport extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = [
-        'fingerprint',
-        'transaction_importer_id',
-    ];
+    protected $fillable = [];
 
     public function transactionImporter()
     {

@@ -35,10 +35,10 @@ class TransactionImportController extends Controller
 
         try {
             $transactionImport = DB::transaction(function () use ($parsedTransactions, $fingerprint, $transactionImporter, $request, $unassignedIncomeId, $unassignedExpenseId, $createTransaction) {
-                $transactionImport = TransactionImport::create([
-                    'fingerprint' => $fingerprint,
-                    'transaction_importer_id' => $transactionImporter->id,
-                ]);
+                $transactionImport = new TransactionImport();
+                $transactionImport->fingerprint = $fingerprint;
+                $transactionImport->transaction_importer_id = $transactionImporter->id;
+                $transactionImport->save();
 
                 foreach ($parsedTransactions as $parsed) {
                     if ($parsed['amount'] >= 0) {
