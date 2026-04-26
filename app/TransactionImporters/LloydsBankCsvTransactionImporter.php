@@ -2,6 +2,7 @@
 
 namespace App\TransactionImporters;
 
+use App\Support\Money;
 use League\Csv\Reader;
 
 class LloydsBankCsvTransactionImporter implements TransactionImporter
@@ -44,8 +45,8 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
         $transactions = [];
 
         foreach ($this->csvReader->getRecords() as $record) {
-            $debit = $record['Debit Amount'] === '' ? 0 : (float) $record['Debit Amount'];
-            $credit = $record['Credit Amount'] === '' ? 0 : (float) $record['Credit Amount'];
+            $debit = $record['Debit Amount'] === '' ? 0 : Money::toPence($record['Debit Amount']);
+            $credit = $record['Credit Amount'] === '' ? 0 : Money::toPence($record['Credit Amount']);
 
             $transactions[] = [
                 'date' => \DateTime::createFromFormat('d/m/Y', $record['Transaction Date'])->format('Y-m-d'),

@@ -42,7 +42,7 @@ class TransactionControllerTest extends TestCase
 
         $this->testTransaction = Transaction::create([
             'description' => 'Salary Received',
-            'amount' => 1500,
+            'amount' => 150_000,
             'credit_account_id' => $this->creditAccount->id,
             'debit_account_id' => $this->debitAccount->id,
         ]);
@@ -54,7 +54,7 @@ class TransactionControllerTest extends TestCase
 
         $response->assertJsonFragment([
             'description' => 'Salary Received',
-            'amount' => "1500.00",
+            'amount' => 150_000,
         ]);
     }
 
@@ -62,19 +62,19 @@ class TransactionControllerTest extends TestCase
     {
         $response = $this->post('/api/transactions', [
             'description' => 'Salary Received',
-            'amount' => 1000.01,
+            'amount' => 100_001,
             'credit_account_id' => $this->creditAccount->id,
             'debit_account_id' => $this->debitAccount->id,
         ]);
 
         $this->assertDatabaseHas('transactions', [
             'description' => 'Salary Received',
-            'amount' => "1000.01",
+            'amount' => 100_001,
         ]);
 
         $response->assertJsonFragment([
             'description' => 'Salary Received',
-            'amount' => "1000.01",
+            'amount' => 100_001,
         ]);
 
         $response->assertJsonPath('transaction.creditAccount.name', 'Test Account Credit');
@@ -87,7 +87,7 @@ class TransactionControllerTest extends TestCase
 
         $response->assertJsonFragment([
             'description' => 'Salary Received',
-            'amount' => "1500.00",
+            'amount' => 150_000,
         ]);
     }
 

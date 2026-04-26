@@ -68,14 +68,14 @@ class TransactionImportControllerTest extends TestCase
 
         $this->assertDatabaseHas('transactions', [
             'description' => 'mobile',
-            'amount' => 8.00,
+            'amount' => 800,
             'credit_account_id' => $this->bankAccount->id,
             'debit_account_id' => $unassignedExpense->id,
         ]);
 
         $this->assertDatabaseHas('transactions', [
             'description' => 'J SMITH    24JAN26',
-            'amount' => 800.00,
+            'amount' => 80000,
             'debit_account_id' => $this->bankAccount->id,
             'credit_account_id' => $unassignedIncome->id,
         ]);

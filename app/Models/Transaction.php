@@ -11,7 +11,7 @@ class Transaction extends Model
 
     protected $fillable = ['description', 'amount', 'credit_account_id', 'debit_account_id', 'transaction_import_id'];
 
-    protected $casts = ['amount' => 'decimal:2'];
+    protected $casts = ['amount' => 'integer'];
 
     public function creditAccount()
     {

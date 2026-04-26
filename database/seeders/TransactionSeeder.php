@@ -65,7 +65,7 @@ class TransactionSeeder extends Seeder
 
         Transaction::create([
             'description' => 'Salary Received',
-            'amount' => 1500,
+            'amount' => 150_000,
             'credit_account_id' => Account::where('name', 'Salary')->first()->id,
             'debit_account_id' => Account::where('name', 'Bank')->first()->id,
         ]);

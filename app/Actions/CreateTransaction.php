@@ -11,7 +11,7 @@ class CreateTransaction
     {
         return [
             'description' => 'required|string|max:255',
-            'amount' => 'required|numeric|gt:0',
+            'amount' => 'required|integer|gt:0',
             'credit_account_id' => ['required', 'exists:accounts,id'],
             'debit_account_id' => ['required', 'exists:accounts,id', 'different:credit_account_id'],
             'transaction_import_id' => ['nullable', 'exists:transaction_imports,id'],
