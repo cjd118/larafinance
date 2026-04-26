@@ -8,7 +8,7 @@ use App\Http\Controllers\TransactionImportController;
 use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('login', [LoginController::class, 'authenticate'])->name('login');
+Route::post('login', [LoginController::class, 'authenticate'])->middleware('throttle:5,1')->name('login');
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::apiResource('account-categories', AccountCategoryController::class)->only('index')->middleware('auth:sanctum');
