@@ -50,7 +50,7 @@ return new class extends Migration
         Schema::create('transaction_imports', function (Blueprint $table) {
             $table->id();
             $table->softDeletes();
-            $table->string('fingerprint', 255);
+            $table->string('fingerprint', 64)->unique();
             $table->timestamps();
 
             $table->foreignId('transaction_importer_id')->constrained('transaction_importers')->onDelete('cascade');

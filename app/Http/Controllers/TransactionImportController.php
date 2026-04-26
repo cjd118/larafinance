@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTransactionImportRequest;
 use App\Models\Account;
 use App\Models\TransactionImport;
 use App\Models\TransactionImporter;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 class TransactionImportController extends Controller
@@ -27,41 +28,41 @@ class TransactionImportController extends Controller
 
         $fingerprint = $dynamicTransactionImporter->generateFingerprint();
 
-        if (TransactionImport::where('fingerprint', $fingerprint)->exists()) {
-            return response('This file has already been imported', 409);
-        }
-
         $parsedTransactions = $dynamicTransactionImporter->parse();
 
         $unassignedIncomeId = Account::where('name', 'Unassigned Income')->value('id');
         $unassignedExpenseId = Account::where('name', 'Unassigned Expense')->value('id');
 
-        $transactionImport = DB::transaction(function () use ($parsedTransactions, $fingerprint, $transactionImporter, $request, $unassignedIncomeId, $unassignedExpenseId, $createTransaction) {
-            $transactionImport = TransactionImport::create([
-                'fingerprint' => $fingerprint,
-                'transaction_importer_id' => $transactionImporter->id,
-            ]);
+        try {
+            $transactionImport = DB::transaction(function () use ($parsedTransactions, $fingerprint, $transactionImporter, $request, $unassignedIncomeId, $unassignedExpenseId, $createTransaction) {
+                $transactionImport = TransactionImport::create([
+                    'fingerprint' => $fingerprint,
+                    'transaction_importer_id' => $transactionImporter->id,
+                ]);
 
-            foreach ($parsedTransactions as $parsed) {
-                if ($parsed['amount'] >= 0) {
-                    $debitAccountId = $request->account_id;
-                    $creditAccountId = $unassignedIncomeId;
-                } else {
-                    $debitAccountId = $unassignedExpenseId;
-                    $creditAccountId = $request->account_id;
+                foreach ($parsedTransactions as $parsed) {
+                    if ($parsed['amount'] >= 0) {
+                        $debitAccountId = $request->account_id;
+                        $creditAccountId = $unassignedIncomeId;
+                    } else {
+                        $debitAccountId = $unassignedExpenseId;
+                        $creditAccountId = $request->account_id;
+                    }
+
+                    $createTransaction->execute([
+                        'description' => $parsed['description'],
+                        'amount' => abs($parsed['amount']),
+                        'credit_account_id' => $creditAccountId,
+                        'debit_account_id' => $debitAccountId,
+                        'transaction_import_id' => $transactionImport->id,
+                    ]);
                 }
 
-                $createTransaction->execute([
-                    'description' => $parsed['description'],
-                    'amount' => abs($parsed['amount']),
-                    'credit_account_id' => $creditAccountId,
-                    'debit_account_id' => $debitAccountId,
-                    'transaction_import_id' => $transactionImport->id,
-                ]);
-            }
-
-            return $transactionImport;
-        });
+                return $transactionImport;
+            });
+        } catch (UniqueConstraintViolationException $e) {
+            return response('This file has already been imported', 409);
+        }
 
         return response()->json([
             'transaction_import_id' => $transactionImport->id,
