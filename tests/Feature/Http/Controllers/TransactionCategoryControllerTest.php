@@ -113,6 +113,56 @@ class TransactionCategoryControllerTest extends TestCase
         ]);
     }
 
+    public function testUpdateAllowsParentIdOnlyPayload(): void
+    {
+        $transportation = TransactionCategory::where('name', 'Transportation')->firstOrFail();
+
+        $response = $this->putJson('/api/transaction-categories/' . $this->homeCategory->id, [
+            'parent_id' => $transportation->id,
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('transaction_categories', [
+            'id' => $this->homeCategory->id,
+            'parent_id' => $transportation->id,
+        ]);
+    }
+
+    public function testUpdateRejectsSelfAsParent(): void
+    {
+        $response = $this->putJson('/api/transaction-categories/' . $this->homeCategory->id, [
+            'name' => 'Home',
+            'parent_id' => $this->homeCategory->id,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('parent_id');
+    }
+
+    public function testUpdateRejectsDescendantAsParent(): void
+    {
+        $utilities = TransactionCategory::where('name', 'Utilities')->firstOrFail();
+
+        $response = $this->putJson('/api/transaction-categories/' . $this->homeCategory->id, [
+            'name' => 'Home',
+            'parent_id' => $utilities->id,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('parent_id');
+    }
+
+    public function testUpdateRejectsNonExistentParent(): void
+    {
+        $response = $this->putJson('/api/transaction-categories/' . $this->homeCategory->id, [
+            'name' => 'Home',
+            'parent_id' => 99999,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('parent_id');
+    }
+
     public function testDestroy(): void
     {
         $response = $this->delete('/api/transaction-categories/' . $this->homeCategory->id);

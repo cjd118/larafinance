@@ -17,8 +17,10 @@ class UpdateTransactionCategoryRequest extends FormRequest
         $id = $this->route('transaction_category');
 
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'parent_id' => [
+                'sometimes',
+                'bail',
                 'nullable',
                 'exists:transaction_categories,id',
                 function ($attribute, $value, $fail) use ($id) {
