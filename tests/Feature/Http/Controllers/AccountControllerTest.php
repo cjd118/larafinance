@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Account;
 use App\Models\AccountCategory;
+use App\Models\Transaction;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 
@@ -95,5 +97,29 @@ class AccountControllerTest extends TestCase
         $this->assertSoftDeleted('accounts', [
             'id' => $this->account->id,
         ]);
+    }
+
+    public function testForceDeletingAccountWithTransactionsFails(): void
+    {
+        $otherAccount = new Account();
+        $otherAccount->name = 'Other Account';
+        $otherAccount->account_category_id = $this->accountCategory->id;
+        $otherAccount->save();
+
+        Transaction::create([
+            'description' => 'pin the FK',
+            'amount' => 1000,
+            'credit_account_id' => $this->account->id,
+            'debit_account_id' => $otherAccount->id,
+        ]);
+
+        $this->expectException(QueryException::class);
+        $this->account->forceDelete();
+    }
+
+    public function testForceDeletingAccountCategoryWithAccountsFails(): void
+    {
+        $this->expectException(QueryException::class);
+        $this->accountCategory->forceDelete();
     }
 }

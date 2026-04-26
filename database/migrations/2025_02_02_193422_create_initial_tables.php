@@ -27,7 +27,7 @@ return new class extends Migration
             $table->softDeletes();
             
 
-            $table->foreignId('account_category_id')->constrained('account_categories')->onDelete('cascade');
+            $table->foreignId('account_category_id')->constrained('account_categories')->onDelete('restrict');
         });
 
         Schema::create('transaction_categories', function (Blueprint $table) {
@@ -63,8 +63,8 @@ return new class extends Migration
             $table->bigInteger('amount');  // pence (signed)
             $table->timestamps();
 
-            $table->foreignId('credit_account_id')->constrained('accounts')->onDelete('cascade');
-            $table->foreignId('debit_account_id')->constrained('accounts')->onDelete('cascade');
+            $table->foreignId('credit_account_id')->constrained('accounts')->onDelete('restrict');
+            $table->foreignId('debit_account_id')->constrained('accounts')->onDelete('restrict');
             $table->foreignId('transaction_import_id')->nullable()->constrained('transaction_imports')->nullOnDelete();
         });
 
