@@ -18,7 +18,7 @@ class TransactionImportController extends Controller
 
         $dynamicTransactionImporter = app()->make($transactionImporter->class_name);
 
-        $dynamicTransactionImporter->loadData($request->data);
+        $dynamicTransactionImporter->loadData($request->file('file')->get());
 
         try {
             $dynamicTransactionImporter->validate();

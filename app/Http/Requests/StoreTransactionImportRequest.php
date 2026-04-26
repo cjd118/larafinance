@@ -16,7 +16,7 @@ class StoreTransactionImportRequest extends FormRequest
         return [
             'name' => 'required|string|exists:transaction_importers,name',
             'account_id' => 'required|integer|exists:accounts,id',
-            'data' => 'required',
+            'file' => 'required|file|mimes:csv,txt|max:5120',
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 use App\Models\Account;
 use App\Models\AccountCategory;
@@ -55,7 +56,7 @@ class TransactionImportControllerTest extends TestCase
         $response = $this->post('/api/transaction-imports', [
             'name' => 'Lloyds Bank CSV',
             'account_id' => $this->bankAccount->id,
-            'data' => $this->generateLloydsBankCsvData(),
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $this->generateLloydsBankCsvData()),
         ]);
 
         $response->assertStatus(201);
@@ -88,13 +89,13 @@ class TransactionImportControllerTest extends TestCase
         $this->post('/api/transaction-imports', [
             'name' => 'Lloyds Bank CSV',
             'account_id' => $this->bankAccount->id,
-            'data' => $csvData,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $csvData),
         ])->assertStatus(201);
 
         $this->post('/api/transaction-imports', [
             'name' => 'Lloyds Bank CSV',
             'account_id' => $this->bankAccount->id,
-            'data' => $csvData,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $csvData),
         ])->assertStatus(409);
     }
 
@@ -103,7 +104,7 @@ class TransactionImportControllerTest extends TestCase
         $response = $this->post('/api/transaction-imports', [
             'name' => 'Lloyds Bank CSV',
             'account_id' => $this->bankAccount->id,
-            'data' => "Wrong,Headers\nfoo,bar\n",
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', "Wrong,Headers\nfoo,bar\n"),
         ]);
 
         $response->assertStatus(422);
