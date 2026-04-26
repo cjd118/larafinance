@@ -32,15 +32,12 @@ class MakeUser extends Command implements PromptsForMissingInput
         $email = $this->argument('email');
         $password = $this->argument('password');
 
-        $user = User::create([
+        User::create([
             'name' => $name,
             'email' => $email,
             'password' => Hash::make($password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        $this->info("User created successfully!");
-        $this->info("Access Token: " . $token);
+        $this->info("User {$email} created. Use `make:token {$email}` to issue an API token.");
     }
 }
