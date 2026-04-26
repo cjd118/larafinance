@@ -37,7 +37,14 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
 
     public function generateFingerprint() : string
     {
-        return hash('sha256', $this->csvReader->__toString());
+        $rows = array_map(
+            fn (array $r) => [$r['date'], $r['description'], $r['amount']],
+            $this->parse()
+        );
+
+        sort($rows);
+
+        return hash('sha256', json_encode($rows));
     }
 
     public function parse() : array

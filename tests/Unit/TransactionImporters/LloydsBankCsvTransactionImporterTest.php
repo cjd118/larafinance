@@ -50,4 +50,46 @@ class LloydsBankCsvTransactionImporterTest extends TestCase
         $parsed = $importer->parse();
         $this->assertSame(10, $parsed[0]['amount']);
     }
+
+    public function testFingerprintIsStableAcrossRowOrder(): void
+    {
+        $header = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance\n";
+        $rowA = "30/01/2026,DEB,'01-02-03,12345678,mobile,8.00,,680.65\n";
+        $rowB = "26/01/2026,TFR,'01-02-03,12345678,J SMITH    24JAN26,,800.00,1318.18\n";
+
+        $forward = new LloydsBankCsvTransactionImporter();
+        $forward->loadData($header . $rowA . $rowB);
+
+        $reversed = new LloydsBankCsvTransactionImporter();
+        $reversed->loadData($header . $rowB . $rowA);
+
+        $this->assertSame($forward->generateFingerprint(), $reversed->generateFingerprint());
+    }
+
+    public function testFingerprintIsStableAcrossLineEndings(): void
+    {
+        $header = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance";
+        $row = "30/01/2026,DEB,'01-02-03,12345678,mobile,8.00,,680.65";
+
+        $lf = new LloydsBankCsvTransactionImporter();
+        $lf->loadData($header . "\n" . $row . "\n");
+
+        $crlf = new LloydsBankCsvTransactionImporter();
+        $crlf->loadData($header . "\r\n" . $row . "\r\n");
+
+        $this->assertSame($lf->generateFingerprint(), $crlf->generateFingerprint());
+    }
+
+    public function testFingerprintDiffersWhenContentDiffers(): void
+    {
+        $header = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance\n";
+
+        $a = new LloydsBankCsvTransactionImporter();
+        $a->loadData($header . "30/01/2026,DEB,'01-02-03,12345678,mobile,8.00,,680.65\n");
+
+        $b = new LloydsBankCsvTransactionImporter();
+        $b->loadData($header . "30/01/2026,DEB,'01-02-03,12345678,mobile,9.00,,680.65\n");
+
+        $this->assertNotSame($a->generateFingerprint(), $b->generateFingerprint());
+    }
 }
