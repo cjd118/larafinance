@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTransactionImportRequest;
 use App\Models\Account;
 use App\Models\TransactionImport;
 use App\Models\TransactionImporter;
+use App\TransactionImporters\InvalidImportFormat;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -22,7 +23,7 @@ class TransactionImportController extends Controller
 
         try {
             $dynamicTransactionImporter->validate();
-        } catch (\Exception $e) {
+        } catch (InvalidImportFormat $e) {
             return response('Invalid file format: ' . $e->getMessage(), 422);
         }
 

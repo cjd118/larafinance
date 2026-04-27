@@ -31,7 +31,7 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
             'Credit Amount',
             'Balance'
         ]) {
-            throw new \Exception('Invalid file header');
+            throw new InvalidImportFormat('Invalid file header');
         };
     }
 
