@@ -6,31 +6,42 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class MakeUser extends Command implements PromptsForMissingInput
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'make:user {name} {email} {password}';
+    protected $signature = 'make:user {name} {email}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Create a new user';
 
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    public function handle(): int
     {
         $name = $this->argument('name');
         $email = $this->argument('email');
-        $password = $this->argument('password');
+        $password = $this->secret('Password');
+        $passwordConfirm = $this->secret('Confirm password');
+
+        if ($password !== $passwordConfirm) {
+            $this->error('Passwords do not match.');
+            return self::FAILURE;
+        }
+
+        $validator = Validator::make([
+            'name' => $name,
+            'email' => $email,
+            'password' => $password,
+        ], [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8',
+        ]);
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->all() as $error) {
+                $this->error($error);
+            }
+            return self::FAILURE;
+        }
 
         User::create([
             'name' => $name,
@@ -39,5 +50,6 @@ class MakeUser extends Command implements PromptsForMissingInput
         ]);
 
         $this->info("User {$email} created. Use `make:token {$email}` to issue an API token.");
+        return self::SUCCESS;
     }
 }
