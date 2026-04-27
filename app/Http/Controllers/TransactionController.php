@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTransactionRequest;
 use App\Http\Resources\TransactionCollection;
 use App\Http\Resources\TransactionResource;
 use App\Models\Transaction;
+use App\Support\Pagination;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -14,9 +15,13 @@ class TransactionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return new TransactionCollection(Transaction::orderBy('id', 'desc')->with(['creditAccount', 'debitAccount'])->paginate(100));
+        $perPage = Pagination::resolvePerPage($request, default: 50, max: 100);
+
+        return new TransactionCollection(
+            Transaction::orderBy('id', 'desc')->with(['creditAccount', 'debitAccount'])->paginate($perPage)
+        );
     }
 
     /**

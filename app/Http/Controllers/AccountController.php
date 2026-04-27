@@ -7,15 +7,21 @@ use App\Http\Requests\UpdateAccountRequest;
 use App\Http\Resources\AccountCollection;
 use App\Http\Resources\AccountResource;
 use App\Models\Account;
+use App\Support\Pagination;
+use Illuminate\Http\Request;
 
 class AccountController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return new AccountCollection(Account::orderBy('id', 'desc')->with('category')->paginate(100));
+        $perPage = Pagination::resolvePerPage($request, default: 50, max: 100);
+
+        return new AccountCollection(
+            Account::orderBy('id', 'desc')->with('category')->paginate($perPage)
+        );
     }
 
     /**
