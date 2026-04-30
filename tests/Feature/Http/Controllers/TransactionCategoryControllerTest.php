@@ -152,6 +152,21 @@ class TransactionCategoryControllerTest extends TestCase
         $response->assertJsonValidationErrors('parent_id');
     }
 
+    public function testUpdateAllowsClearingParentToNull(): void
+    {
+        $utilities = TransactionCategory::where('name', 'Utilities')->firstOrFail();
+
+        $response = $this->putJson('/api/transaction-categories/' . $utilities->id, [
+            'parent_id' => null,
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('transaction_categories', [
+            'id' => $utilities->id,
+            'parent_id' => null,
+        ]);
+    }
+
     public function testUpdateRejectsNonExistentParent(): void
     {
         $response = $this->putJson('/api/transaction-categories/' . $this->homeCategory->id, [
