@@ -19,5 +19,5 @@ Route::apiResource('transactions', TransactionController::class)->middleware('au
 
 Route::apiResource('transaction-categories', TransactionCategoryController::class)->middleware('auth:sanctum');
 
-Route::apiResource('transaction-imports', TransactionImportController::class)->only('index', 'store')->middleware('auth:sanctum');
+Route::apiResource('transaction-imports', TransactionImportController::class)->only('store')->middleware('auth:sanctum');
 
