@@ -13,7 +13,7 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
 
     public function loadData(string $data) : void
     {
-        $this->csvReader = Reader::createFromString($data);
+        $this->csvReader = Reader::fromString($data);
         $this->csvReader->setHeaderOffset(0);
     }
 
