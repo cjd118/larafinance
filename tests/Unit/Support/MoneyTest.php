@@ -4,6 +4,7 @@ namespace Tests\Unit\Support;
 
 use App\Support\Money;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class MoneyTest extends TestCase
@@ -33,9 +34,7 @@ class MoneyTest extends TestCase
         $this->assertSame(9999999999, Money::toPence('99999999.99'));
     }
 
-    /**
-     * @dataProvider invalidInputProvider
-     */
+    #[DataProvider('invalidInputProvider')]
     public function testToPenceRejectsMalformedInput(string $input): void
     {
         $this->expectException(InvalidArgumentException::class);
