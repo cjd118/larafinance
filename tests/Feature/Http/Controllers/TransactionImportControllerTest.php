@@ -110,6 +110,36 @@ class TransactionImportControllerTest extends TestCase
         $response->assertStatus(422);
     }
 
+    public function testStoreRejectsRowWithMalformedDate(): void
+    {
+        $csv = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance\n";
+        $csv .= "not-a-date,DEB,'01-02-03,12345678,mobile,8.00,,680.65\n";
+
+        $response = $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $csv),
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertDatabaseCount('transactions', 0);
+    }
+
+    public function testStoreRejectsRowWithMalformedAmount(): void
+    {
+        $csv = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance\n";
+        $csv .= "30/01/2026,DEB,'01-02-03,12345678,mobile,abc,,680.65\n";
+
+        $response = $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $csv),
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertDatabaseCount('transactions', 0);
+    }
+
     private function generateLloydsBankCsvData(): string
     {
         $csvData = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance\n";

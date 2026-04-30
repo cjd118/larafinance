@@ -54,8 +54,12 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
         $transactions = [];
 
         foreach ($this->csvReader->getRecords() as $record) {
-            $debit = $record['Debit Amount'] === '' ? 0 : Money::toPence($record['Debit Amount']);
-            $credit = $record['Credit Amount'] === '' ? 0 : Money::toPence($record['Credit Amount']);
+            try {
+                $debit = $record['Debit Amount'] === '' ? 0 : Money::toPence($record['Debit Amount']);
+                $credit = $record['Credit Amount'] === '' ? 0 : Money::toPence($record['Credit Amount']);
+            } catch (\InvalidArgumentException $e) {
+                throw new InvalidImportFormat("Invalid amount: {$e->getMessage()}", previous: $e);
+            }
 
             try {
                 $date = Carbon::createFromFormat('!d/m/Y', $record['Transaction Date']);

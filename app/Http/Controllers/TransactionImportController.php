@@ -23,13 +23,11 @@ class TransactionImportController extends Controller
 
         try {
             $dynamicTransactionImporter->validate();
+            $fingerprint = $dynamicTransactionImporter->generateFingerprint();
+            $parsedTransactions = $dynamicTransactionImporter->parse();
         } catch (InvalidImportFormat $e) {
             return response('Invalid file format: ' . $e->getMessage(), 422);
         }
-
-        $fingerprint = $dynamicTransactionImporter->generateFingerprint();
-
-        $parsedTransactions = $dynamicTransactionImporter->parse();
 
         $unassignedIncomeId = Account::where('name', 'Unassigned Income')->value('id');
         $unassignedExpenseId = Account::where('name', 'Unassigned Expense')->value('id');
