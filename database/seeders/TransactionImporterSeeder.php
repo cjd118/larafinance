@@ -18,9 +18,9 @@ class TransactionImporterSeeder extends Seeder
             'class_name' => \App\TransactionImporters\LloydsBankCsvTransactionImporter::class,
         ]);
 
-        TransactionImporter::create([
-            'name' => 'Lloyds Bank QIF',
-            'class_name' => \App\TransactionImporters\LloydsBankQifTransactionImporter::class,
-        ]);
+        // TransactionImporter::create([
+        //     'name' => 'Lloyds Bank QIF',
+        //     'class_name' => \App\TransactionImporters\LloydsBankQifTransactionImporter::class,
+        // ]);
     }
 }
