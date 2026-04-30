@@ -9,7 +9,7 @@ class Transaction extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['description', 'amount', 'credit_account_id', 'debit_account_id', 'transaction_import_id', 'transaction_category_id'];
+    protected $fillable = ['description', 'amount', 'credit_account_id', 'debit_account_id', 'transaction_category_id'];
 
     protected $casts = ['amount' => 'integer'];
 
