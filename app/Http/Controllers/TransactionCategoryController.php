@@ -15,9 +15,18 @@ class TransactionCategoryController extends Controller
      */
     public function index()
     {
-        return new TransactionCategoryCollection(TransactionCategory::all()->sortBy(function ($category) {
-            return $category->getPathFormatted();
-        }));
+        // Hydrates `parent` from an in-memory id-map to avoid N+1 during the path-sort.
+        // Relies on fetching the full table; if this endpoint is paginated/filtered later, revisit.
+        $categories = TransactionCategory::all();
+        $byId = $categories->keyBy('id');
+
+        $categories->each(fn ($cat) => $cat->setRelation(
+            'parent', $cat->parent_id ? $byId->get($cat->parent_id) : null
+        ));
+
+        return new TransactionCategoryCollection(
+            $categories->sortBy(fn ($cat) => $cat->getPathFormatted())
+        );
     }
 
     /**
