@@ -55,7 +55,8 @@ class TransactionImportController extends Controller
                         'amount' => abs($parsed['amount']),
                         'credit_account_id' => $creditAccountId,
                         'debit_account_id' => $debitAccountId,
-                    ], transactionImportId: $transactionImport->id);
+                        'transaction_import_id' => $transactionImport->id,
+                    ]);
                 }
 
                 return $transactionImport;
