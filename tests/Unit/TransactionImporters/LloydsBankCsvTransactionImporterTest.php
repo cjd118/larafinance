@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\TransactionImporters;
 
+use App\TransactionImporters\InvalidImportFormat;
 use App\TransactionImporters\LloydsBankCsvTransactionImporter;
 use PHPUnit\Framework\TestCase;
 
@@ -78,6 +79,18 @@ class LloydsBankCsvTransactionImporterTest extends TestCase
         $crlf->loadData($header . "\r\n" . $row . "\r\n");
 
         $this->assertSame($lf->generateFingerprint(), $crlf->generateFingerprint());
+    }
+
+    public function testParseThrowsInvalidImportFormatOnMalformedDate(): void
+    {
+        $csv = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance\n";
+        $csv .= "not-a-date,DEB,'01-02-03,12345678,mobile,8.00,,680.65\n";
+
+        $importer = new LloydsBankCsvTransactionImporter();
+        $importer->loadData($csv);
+
+        $this->expectException(InvalidImportFormat::class);
+        $importer->parse();
     }
 
     public function testFingerprintDiffersWhenContentDiffers(): void

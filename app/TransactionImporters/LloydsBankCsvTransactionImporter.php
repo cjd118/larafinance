@@ -3,6 +3,8 @@
 namespace App\TransactionImporters;
 
 use App\Support\Money;
+use Carbon\Carbon;
+use Carbon\Exceptions\InvalidFormatException;
 use League\Csv\Reader;
 
 class LloydsBankCsvTransactionImporter implements TransactionImporter
@@ -55,8 +57,14 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
             $debit = $record['Debit Amount'] === '' ? 0 : Money::toPence($record['Debit Amount']);
             $credit = $record['Credit Amount'] === '' ? 0 : Money::toPence($record['Credit Amount']);
 
+            try {
+                $date = Carbon::createFromFormat('!d/m/Y', $record['Transaction Date']);
+            } catch (InvalidFormatException $e) {
+                throw new InvalidImportFormat("Invalid date: {$record['Transaction Date']}", previous: $e);
+            }
+
             $transactions[] = [
-                'date' => \DateTime::createFromFormat('d/m/Y', $record['Transaction Date'])->format('Y-m-d'),
+                'date' => $date->format('Y-m-d'),
                 'type' => $record['Transaction Type'],
                 'sort_code' => ltrim($record['Sort Code'], "'"),
                 'account_number' => $record['Account Number'],
