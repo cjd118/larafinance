@@ -4,7 +4,7 @@ namespace Tests\Unit\TransactionImporters;
 
 use App\TransactionImporters\InvalidImportFormat;
 use App\TransactionImporters\LloydsBankCsvTransactionImporter;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class LloydsBankCsvTransactionImporterTest extends TestCase
 {
