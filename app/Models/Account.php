@@ -9,7 +9,7 @@ class Account extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'type', 'account_category_id'];
+    protected $fillable = ['name', 'account_category_id'];
 
     public function category()
     {
