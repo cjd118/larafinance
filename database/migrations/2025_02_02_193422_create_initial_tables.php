@@ -66,6 +66,7 @@ return new class extends Migration
             $table->foreignId('credit_account_id')->constrained('accounts')->onDelete('restrict');
             $table->foreignId('debit_account_id')->constrained('accounts')->onDelete('restrict');
             $table->foreignId('transaction_import_id')->nullable()->constrained('transaction_imports')->nullOnDelete();
+            $table->foreignId('transaction_category_id')->nullable()->constrained('transaction_categories')->onDelete('restrict');
         });
 
         // Double-entry invariant: credit and debit accounts must differ.
