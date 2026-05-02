@@ -70,12 +70,12 @@ class TransactionCategoryControllerTest extends TestCase
     {
         $response = $this->get('/api/transaction-categories');
 
-        $responseDecoded = $response->decodeResponseJson();
+        $body = $response->json();
 
-        $this->assertEquals('Home', $responseDecoded[0]['name']);
-        $this->assertEquals('Home', $responseDecoded[0]['path']);
-        $this->assertEquals('DIY', $responseDecoded[1]['name']);
-        $this->assertEquals('Home > DIY', $responseDecoded[1]['path']);
+        $this->assertEquals('Home', $body[0]['name']);
+        $this->assertEquals('Home', $body[0]['path']);
+        $this->assertEquals('DIY', $body[1]['name']);
+        $this->assertEquals('Home > DIY', $body[1]['path']);
     }
 
     public function testStore(): void

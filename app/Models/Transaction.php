@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Transaction extends Model
@@ -13,22 +14,22 @@ class Transaction extends Model
 
     protected $casts = ['amount' => 'integer'];
 
-    public function creditAccount()
+    public function creditAccount(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'credit_account_id');
     }
 
-    public function debitAccount()
+    public function debitAccount(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'debit_account_id');
     }
 
-    public function transactionImport()
+    public function transactionImport(): BelongsTo
     {
         return $this->belongsTo(TransactionImport::class);
     }
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(TransactionCategory::class, 'transaction_category_id');
     }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
@@ -13,7 +14,7 @@ class Account extends Model
 
     protected $fillable = ['name', 'account_category_id'];
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(AccountCategory::class, 'account_category_id');
     }

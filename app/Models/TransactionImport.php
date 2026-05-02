@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TransactionImport extends Model
@@ -11,12 +13,12 @@ class TransactionImport extends Model
 
     protected $fillable = [];
 
-    public function transactionImporter()
+    public function transactionImporter(): BelongsTo
     {
         return $this->belongsTo(TransactionImporter::class);
     }
 
-    public function transactions()
+    public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
