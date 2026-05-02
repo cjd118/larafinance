@@ -25,10 +25,8 @@ class UpdateTransactionCategoryRequest extends FormRequest
                 'exists:transaction_categories,id',
                 function ($attribute, $value, $fail) use ($id) {
                     $currentPath = TransactionCategory::find($value)->getPath();
-                    foreach ($currentPath as $pathElement) {
-                        if ($pathElement->id == $id) {
-                            return $fail('Parent cannot be child of itself');
-                        }
+                    if (array_any($currentPath, fn ($p) => $p->id == $id)) {
+                        $fail('Parent cannot be child of itself');
                     }
                 },
             ],
