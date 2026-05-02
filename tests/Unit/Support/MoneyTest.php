@@ -22,6 +22,15 @@ class MoneyTest extends TestCase
         $this->assertSame(100001, Money::toPence('1000.01'));
     }
 
+    public function testToPenceParsesSingleDecimalPlaceAsTrailingZero(): void
+    {
+        // Real Lloyds CSVs sometimes emit a single decimal place (e.g. "13.1"
+        // meaning 13 pounds 10 pence). Treat it as if the second digit were 0.
+        $this->assertSame(1310, Money::toPence('13.1'));
+        $this->assertSame(50, Money::toPence('0.5'));
+        $this->assertSame(-50, Money::toPence('-0.5'));
+    }
+
     public function testToPenceParsesNegativeStrings(): void
     {
         $this->assertSame(-5, Money::toPence('-0.05'));
@@ -45,7 +54,6 @@ class MoneyTest extends TestCase
     {
         return [
             'empty string' => [''],
-            'one decimal place' => ['1.5'],
             'three decimal places' => ['1.234'],
             'non-numeric' => ['abc'],
             'leading whitespace' => [' 1.50'],
