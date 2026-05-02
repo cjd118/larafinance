@@ -81,6 +81,21 @@ class LloydsBankCsvTransactionImporterTest extends TestCase
         $this->assertSame($lf->generateFingerprint(), $crlf->generateFingerprint());
     }
 
+    public function testValidateAcceptsTrailingCommaOnHeader(): void
+    {
+        // Real Lloyds exports include a trailing comma on the header line.
+        $csv = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance,\n";
+        $csv .= "30/01/2026,DEB,'01-02-03,12345678,mobile,8.00,,680.65\n";
+
+        $importer = new LloydsBankCsvTransactionImporter();
+        $importer->loadData($csv);
+
+        $importer->validate(); // must not throw
+
+        $parsed = $importer->parse();
+        $this->assertSame('mobile', $parsed[0]['description']);
+    }
+
     public function testParseThrowsInvalidImportFormatOnMalformedDate(): void
     {
         $csv = "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance\n";

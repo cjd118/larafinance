@@ -18,7 +18,15 @@ class LloydsBankCsvTransactionImporter implements TransactionImporter
     }
 
     public function validate() : void {
-        $this->validateHeader($this->csvReader->getHeader());
+        $header = $this->csvReader->getHeader();
+
+        // Real Lloyds exports include a trailing comma on the header line,
+        // which League CSV reads as an extra empty-string column.
+        while (end($header) === '') {
+            array_pop($header);
+        }
+
+        $this->validateHeader($header);
     }
 
     private function validateHeader(array $header) : void
