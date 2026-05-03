@@ -197,19 +197,20 @@ class TransactionImportControllerTest extends TestCase
         ]);
     }
 
-    public function testStoreSkipsRuleWhenAccountTypeMismatchesTransactionSide(): void
+    public function testStoreAppliesCreditTypedRuleOnOutflow(): void
     {
-        // Rule points at a debit-typed account but the matching row's counterpart
-        // is on the credit side — should fall through to Unassigned Income.
-        $mobileBills = Account::create([
-            'name' => 'Mobile Bills',
-            'account_category_id' => $this->expensesCategory->id,
+        // Paying down a liability is an outflow whose counterpart is a
+        // credit-typed account (the liability) being debited. Rule should fire.
+        $liabilitiesCategory = AccountCategory::create(['name' => 'Liabilities', 'type' => 'credit']);
+        $mortgage = Account::create([
+            'name' => 'Mortgage',
+            'account_category_id' => $liabilitiesCategory->id,
         ]);
 
         AccountRoutingRule::create([
-            'match_text' => 'J SMITH',
+            'match_text' => 'mobile',
             'mode' => 'contains',
-            'account_id' => $mobileBills->id,
+            'account_id' => $mortgage->id,
         ]);
 
         $this->post('/api/transaction-imports', [
@@ -218,10 +219,10 @@ class TransactionImportControllerTest extends TestCase
             'file' => UploadedFile::fake()->createWithContent('statement.csv', $this->generateLloydsBankCsvData()),
         ])->assertStatus(201);
 
-        $unassignedIncomeId = Account::where('name', 'Unassigned Income')->value('id');
         $this->assertDatabaseHas('transactions', [
-            'description' => 'J SMITH    24JAN26',
-            'credit_account_id' => $unassignedIncomeId,
+            'description' => 'mobile',
+            'debit_account_id' => $mortgage->id,
+            'credit_account_id' => $this->bankAccount->id,
         ]);
     }
 

@@ -22,20 +22,13 @@ class AccountRoutingRule extends Model
         return $this->belongsTo(Account::class);
     }
 
-    public static function findMatch(bool $isCredit, string $description): ?self
+    public static function findMatch(string $description): ?self
     {
-        $expectedType = $isCredit ? 'credit' : 'debit';
-
         return self::where('enabled', true)
-            ->with('account.category')
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
-            ->first(function (self $rule) use ($expectedType, $description) {
-                if ($rule->account->category->type !== $expectedType) {
-                    return false;
-                }
-
+            ->first(function (self $rule) use ($description) {
                 return match ($rule->mode) {
                     'contains' => stripos($description, $rule->match_text) !== false,
                     'exact' => strcasecmp($description, $rule->match_text) === 0,

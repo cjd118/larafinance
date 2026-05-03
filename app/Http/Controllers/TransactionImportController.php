@@ -43,7 +43,7 @@ class TransactionImportController extends Controller
 
                 foreach ($parsedTransactions as $parsed) {
                     $isCredit = $parsed['amount'] >= 0;
-                    $matchedRule = AccountRoutingRule::findMatch($isCredit, $parsed['description']);
+                    $matchedRule = AccountRoutingRule::findMatch($parsed['description']);
 
                     if ($matchedRule) {
                         Log::channel('account_routing')->info(sprintf(
