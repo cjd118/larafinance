@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountCategoryController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountRoutingRuleController;
 use App\Http\Controllers\TransactionCategoryController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransactionImportController;
@@ -20,4 +21,6 @@ Route::apiResource('transactions', TransactionController::class)->middleware('au
 Route::apiResource('transaction-categories', TransactionCategoryController::class)->middleware('auth:sanctum');
 
 Route::apiResource('transaction-imports', TransactionImportController::class)->only('store')->middleware('auth:sanctum');
+
+Route::apiResource('account-routing-rules', AccountRoutingRuleController::class)->middleware('auth:sanctum');
 
