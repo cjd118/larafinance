@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $plainToken = env('SEEDED_API_TOKEN', 'localdev');
+        $plainToken = config('auth.seeded_api_token');
 
         $token = PersonalAccessToken::forceCreate([
             'tokenable_type' => User::class,
@@ -25,6 +25,6 @@ class UserSeeder extends Seeder
             'abilities' => ['*'],
         ]);
 
-        $this->command?->info("Seeded API token for {$user->email}: {$token->id}|{$plainToken}");
+        $this->command->info("Seeded API token for {$user->email}: {$token->id}|{$plainToken}");
     }
 }

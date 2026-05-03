@@ -112,4 +112,6 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'seeded_api_token' => env('SEEDED_API_TOKEN', 'localdev'),
+
 ];
