@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
 
+/**
+ * @property-read AccountCategory $category
+ */
 class Account extends Model
 {
     use SoftDeletes;

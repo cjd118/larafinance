@@ -7,6 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 use App\Models\Account;
 use App\Models\AccountCategory;
+use App\Models\AccountRoutingRule;
 use App\Models\Transaction;
 use App\Models\TransactionImporter;
 use App\Models\User;
@@ -17,6 +18,8 @@ class TransactionImportControllerTest extends TestCase
     use RefreshDatabase;
 
     private Account $bankAccount;
+    private AccountCategory $incomeCategory;
+    private AccountCategory $expensesCategory;
 
     public function setup(): void {
         parent::setUp();
@@ -32,8 +35,8 @@ class TransactionImportControllerTest extends TestCase
         $transactionImporter->save();
 
         $assetsCategory = AccountCategory::create(['name' => 'Assets', 'type' => 'debit']);
-        $incomeCategory = AccountCategory::create(['name' => 'Income', 'type' => 'credit']);
-        $expensesCategory = AccountCategory::create(['name' => 'Expenses', 'type' => 'debit']);
+        $this->incomeCategory = AccountCategory::create(['name' => 'Income', 'type' => 'credit']);
+        $this->expensesCategory = AccountCategory::create(['name' => 'Expenses', 'type' => 'debit']);
 
         $this->bankAccount = Account::create([
             'name' => 'Bank',
@@ -42,12 +45,12 @@ class TransactionImportControllerTest extends TestCase
 
         Account::create([
             'name' => 'Unassigned Income',
-            'account_category_id' => $incomeCategory->id,
+            'account_category_id' => $this->incomeCategory->id,
         ]);
 
         Account::create([
             'name' => 'Unassigned Expense',
-            'account_category_id' => $expensesCategory->id,
+            'account_category_id' => $this->expensesCategory->id,
         ]);
     }
 
@@ -138,6 +141,152 @@ class TransactionImportControllerTest extends TestCase
 
         $response->assertStatus(422);
         $this->assertDatabaseCount('transactions', 0);
+    }
+
+    public function testStoreAppliesMatchingDebitRule(): void
+    {
+        $mobileBills = Account::create([
+            'name' => 'Mobile Bills',
+            'account_category_id' => $this->expensesCategory->id,
+        ]);
+
+        AccountRoutingRule::create([
+            'match_text' => 'mobile',
+            'mode' => 'contains',
+            'account_id' => $mobileBills->id,
+        ]);
+
+        $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $this->generateLloydsBankCsvData()),
+        ])->assertStatus(201);
+
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'mobile',
+            'amount' => 800,
+            'credit_account_id' => $this->bankAccount->id,
+            'debit_account_id' => $mobileBills->id,
+        ]);
+    }
+
+    public function testStoreAppliesMatchingCreditRule(): void
+    {
+        $salary = Account::create([
+            'name' => 'Salary',
+            'account_category_id' => $this->incomeCategory->id,
+        ]);
+
+        AccountRoutingRule::create([
+            'match_text' => 'J SMITH',
+            'mode' => 'contains',
+            'account_id' => $salary->id,
+        ]);
+
+        $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $this->generateLloydsBankCsvData()),
+        ])->assertStatus(201);
+
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'J SMITH    24JAN26',
+            'amount' => 80000,
+            'debit_account_id' => $this->bankAccount->id,
+            'credit_account_id' => $salary->id,
+        ]);
+    }
+
+    public function testStoreSkipsRuleWhenAccountTypeMismatchesTransactionSide(): void
+    {
+        // Rule points at a debit-typed account but the matching row's counterpart
+        // is on the credit side — should fall through to Unassigned Income.
+        $mobileBills = Account::create([
+            'name' => 'Mobile Bills',
+            'account_category_id' => $this->expensesCategory->id,
+        ]);
+
+        AccountRoutingRule::create([
+            'match_text' => 'J SMITH',
+            'mode' => 'contains',
+            'account_id' => $mobileBills->id,
+        ]);
+
+        $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $this->generateLloydsBankCsvData()),
+        ])->assertStatus(201);
+
+        $unassignedIncomeId = Account::where('name', 'Unassigned Income')->value('id');
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'J SMITH    24JAN26',
+            'credit_account_id' => $unassignedIncomeId,
+        ]);
+    }
+
+    public function testStoreUsesHighestPriorityRuleWhenMultipleMatch(): void
+    {
+        $mobileBills = Account::create([
+            'name' => 'Mobile Bills',
+            'account_category_id' => $this->expensesCategory->id,
+        ]);
+        $genericExpense = Account::create([
+            'name' => 'Generic Expense',
+            'account_category_id' => $this->expensesCategory->id,
+        ]);
+
+        AccountRoutingRule::create([
+            'match_text' => 'mobile',
+            'mode' => 'contains',
+            'account_id' => $genericExpense->id,
+            'sort_order' => 10,
+        ]);
+
+        AccountRoutingRule::create([
+            'match_text' => 'mobile',
+            'mode' => 'contains',
+            'account_id' => $mobileBills->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $this->generateLloydsBankCsvData()),
+        ])->assertStatus(201);
+
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'mobile',
+            'debit_account_id' => $mobileBills->id,
+        ]);
+    }
+
+    public function testStoreIgnoresDisabledRule(): void
+    {
+        $mobileBills = Account::create([
+            'name' => 'Mobile Bills',
+            'account_category_id' => $this->expensesCategory->id,
+        ]);
+
+        AccountRoutingRule::create([
+            'match_text' => 'mobile',
+            'mode' => 'contains',
+            'account_id' => $mobileBills->id,
+            'enabled' => false,
+        ]);
+
+        $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $this->generateLloydsBankCsvData()),
+        ])->assertStatus(201);
+
+        $unassignedExpenseId = Account::where('name', 'Unassigned Expense')->value('id');
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'mobile',
+            'debit_account_id' => $unassignedExpenseId,
+        ]);
     }
 
     private function generateLloydsBankCsvData(): string

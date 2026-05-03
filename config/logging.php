@@ -65,6 +65,13 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'account_routing' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/account_routing.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

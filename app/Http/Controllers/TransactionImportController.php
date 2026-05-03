@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Actions\CreateTransaction;
 use App\Http\Requests\StoreTransactionImportRequest;
 use App\Models\Account;
+use App\Models\AccountRoutingRule;
 use App\Models\TransactionImport;
 use App\Models\TransactionImporter;
 use App\TransactionImporters\InvalidImportFormat;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TransactionImportController extends Controller
 {
@@ -40,11 +42,30 @@ class TransactionImportController extends Controller
                 $transactionImport->save();
 
                 foreach ($parsedTransactions as $parsed) {
-                    if ($parsed['amount'] >= 0) {
-                        $debitAccountId = $request->account_id;
-                        $creditAccountId = $unassignedIncomeId;
+                    $isCredit = $parsed['amount'] >= 0;
+                    $matchedRule = AccountRoutingRule::findMatch($isCredit, $parsed['description']);
+
+                    if ($matchedRule) {
+                        Log::channel('account_routing')->info(sprintf(
+                            'Rule %d ("%s", mode=%s) matched transaction "%s" → routed counterpart to account %d (%s)',
+                            $matchedRule->id,
+                            $matchedRule->match_text,
+                            $matchedRule->mode,
+                            $parsed['description'],
+                            $matchedRule->account_id,
+                            $matchedRule->account->name,
+                        ));
+
+                        $counterpartAccountId = $matchedRule->account_id;
                     } else {
-                        $debitAccountId = $unassignedExpenseId;
+                        $counterpartAccountId = $isCredit ? $unassignedIncomeId : $unassignedExpenseId;
+                    }
+
+                    if ($isCredit) {
+                        $debitAccountId = $request->account_id;
+                        $creditAccountId = $counterpartAccountId;
+                    } else {
+                        $debitAccountId = $counterpartAccountId;
                         $creditAccountId = $request->account_id;
                     }
 
