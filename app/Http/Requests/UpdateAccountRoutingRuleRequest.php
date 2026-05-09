@@ -16,7 +16,7 @@ class UpdateAccountRoutingRuleRequest extends FormRequest
         return [
             'match_text' => 'sometimes|required|string|max:255',
             'mode' => 'sometimes|required|in:contains,exact',
-            'account_id' => 'sometimes|required|exists:accounts,id',
+            'account_id' => 'sometimes|required|exists:accounts,id,deleted_at,NULL',
             'sort_order' => 'sometimes|integer|min:0',
             'enabled' => 'sometimes|boolean',
         ];

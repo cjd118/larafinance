@@ -25,6 +25,7 @@ class AccountRoutingRule extends Model
     public static function findMatch(string $description): ?self
     {
         return self::where('enabled', true)
+            ->whereHas('account')
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()

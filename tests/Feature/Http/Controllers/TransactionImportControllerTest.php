@@ -263,6 +263,34 @@ class TransactionImportControllerTest extends TestCase
         ]);
     }
 
+    public function testStoreIgnoresRulePointingAtSoftDeletedAccount(): void
+    {
+        $mobileBills = Account::create([
+            'name' => 'Mobile Bills',
+            'account_category_id' => $this->expensesCategory->id,
+        ]);
+
+        AccountRoutingRule::create([
+            'match_text' => 'mobile',
+            'mode' => 'contains',
+            'account_id' => $mobileBills->id,
+        ]);
+
+        $mobileBills->delete();
+
+        $this->post('/api/transaction-imports', [
+            'name' => 'Lloyds Bank CSV',
+            'account_id' => $this->bankAccount->id,
+            'file' => UploadedFile::fake()->createWithContent('statement.csv', $this->generateLloydsBankCsvData()),
+        ])->assertStatus(201);
+
+        $unassignedExpenseId = Account::where('name', 'Unassigned Expense')->value('id');
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'mobile',
+            'debit_account_id' => $unassignedExpenseId,
+        ]);
+    }
+
     public function testStoreIgnoresDisabledRule(): void
     {
         $mobileBills = Account::create([

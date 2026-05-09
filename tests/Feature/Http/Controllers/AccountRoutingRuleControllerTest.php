@@ -104,6 +104,38 @@ class AccountRoutingRuleControllerTest extends TestCase
         $response->assertJsonValidationErrors('account_id');
     }
 
+    public function testStoreRejectsSoftDeletedAccount(): void
+    {
+        $this->expenseAccount->delete();
+
+        $response = $this->postJson('/api/account-routing-rules', [
+            'match_text' => 'TESCO',
+            'mode' => 'contains',
+            'account_id' => $this->expenseAccount->id,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('account_id');
+    }
+
+    public function testUpdateRejectsSoftDeletedAccount(): void
+    {
+        $rule = AccountRoutingRule::create([
+            'match_text' => 'TESCO',
+            'mode' => 'contains',
+            'account_id' => $this->expenseAccount->id,
+        ]);
+
+        $this->otherExpenseAccount->delete();
+
+        $response = $this->putJson('/api/account-routing-rules/' . $rule->id, [
+            'account_id' => $this->otherExpenseAccount->id,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('account_id');
+    }
+
     public function testStoreRequiresFields(): void
     {
         $response = $this->postJson('/api/account-routing-rules', []);
