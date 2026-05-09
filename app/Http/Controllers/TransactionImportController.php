@@ -46,15 +46,17 @@ class TransactionImportController extends Controller
                     $matchedRule = AccountRoutingRule::findMatch($parsed['description']);
 
                     if ($matchedRule) {
-                        Log::channel('account_routing')->info(sprintf(
-                            'Rule %d ("%s", mode=%s) matched transaction "%s" → routed counterpart to account %d (%s)',
-                            $matchedRule->id,
-                            $matchedRule->match_text,
-                            $matchedRule->mode,
-                            $parsed['description'],
-                            $matchedRule->account_id,
-                            $matchedRule->account->name,
-                        ));
+                        Log::channel('account_routing')->info(
+                            'Rule {rule_id} ("{match_text}", mode={mode}) matched transaction "{description}" -> routed counterpart to account {account_id} ({account_name})',
+                            [
+                                'rule_id' => $matchedRule->id,
+                                'match_text' => $matchedRule->match_text,
+                                'mode' => $matchedRule->mode,
+                                'description' => $parsed['description'],
+                                'account_id' => $matchedRule->account_id,
+                                'account_name' => $matchedRule->account->name,
+                            ]
+                        );
 
                         $counterpartAccountId = $matchedRule->account_id;
                     } else {
