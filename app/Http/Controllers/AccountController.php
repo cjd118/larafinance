@@ -66,6 +66,6 @@ class AccountController extends Controller
         $account = Account::findOrFail($id);
         $account->delete();
     
-        return response(null, 200);
+        return response()->noContent();
     }
 }

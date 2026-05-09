@@ -191,7 +191,7 @@ class AccountRoutingRuleControllerTest extends TestCase
 
         $response = $this->deleteJson('/api/account-routing-rules/' . $rule->id);
 
-        $response->assertStatus(200);
+        $response->assertStatus(204);
         $this->assertDatabaseMissing('account_routing_rules', ['id' => $rule->id]);
     }
 

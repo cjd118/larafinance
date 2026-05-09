@@ -70,6 +70,6 @@ class TransactionCategoryController extends Controller
         $transactionCategory = TransactionCategory::findOrFail($id);
         $transactionCategory->delete();
     
-        return response(null, 200);
+        return response()->noContent();
     }
 }

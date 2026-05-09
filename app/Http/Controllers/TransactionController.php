@@ -61,6 +61,6 @@ class TransactionController extends Controller
         $transaction = Transaction::findOrFail($id);
         $transaction->delete();
     
-        return response(null, 200);
+        return response()->noContent();
     }
 }

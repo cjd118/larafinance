@@ -57,6 +57,6 @@ class AccountRoutingRuleController extends Controller
         $rule = AccountRoutingRule::findOrFail($id);
         $rule->delete();
 
-        return response(null, 200);
+        return response()->noContent();
     }
 }
